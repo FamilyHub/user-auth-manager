@@ -121,10 +121,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByMobileNumber(String mobileNumber) {
-        User user = userRepository.findByMobileNumber(mobileNumber);
-        if (user == null) {
+        Optional<User> user = userRepository.findByMobileNumber(mobileNumber);
+        if (user.isEmpty()) {
             throw new ResourceNotFoundException("User not found with mobile number: " + mobileNumber);
         }
-        return user;
+        return user.get();
     }
 } 

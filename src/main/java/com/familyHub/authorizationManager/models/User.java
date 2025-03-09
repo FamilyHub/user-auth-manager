@@ -31,7 +31,7 @@ public class User {
     private String email;
     
     @Indexed(unique = true)
-    @Field("mobile_number")
+    @Field("mobileNumber")
     private String mobileNumber;
     
     @Field("password")

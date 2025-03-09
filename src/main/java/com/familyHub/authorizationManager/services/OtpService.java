@@ -31,6 +31,8 @@ public class OtpService {
     private SmsService smsService;
 
     public String generateOtp(String identifier, String type) {
+        logger.debug("Generating OTP for identifier: {} of type: {}", identifier, type);
+        
         // Check if user exists based on type
         User user = null;
         if ("EMAIL".equalsIgnoreCase(type)) {
@@ -66,51 +68,50 @@ public class OtpService {
             } else {
                 smsService.sendOtpSms(identifier, otpValue);
             }
+            logger.info("OTP sent successfully to {} via {}", identifier, type);
         } catch (Exception e) {
-            // Log the error but don't expose it to the user
-            System.err.println("Failed to send OTP: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to send OTP: {}", e.getMessage(), e);
             // Still return the OTP for development/testing
-            System.out.println("OTP for " + type + " " + identifier + ": " + otpValue);
+            logger.debug("Development mode - OTP for {} {}: {}", type, identifier, otpValue);
         }
         
         return otpValue;
     }
 
     public boolean validateOtp(String identifier, String otpValue, String type) {
-        logger.debug("Starting OTP validation for identifier: {}, type: {}", identifier, type);
+        logger.debug("Validating OTP for identifier: {} of type: {}", identifier, type);
         
-        // Step 1: Find the latest valid OTP
+        if ("MOBILE".equalsIgnoreCase(type)) {
+            // For mobile, use Twilio's Verify API
+            return smsService.verifyOtp(identifier, otpValue);
+        }
+        
+        // For email, use our database validation
         Optional<Otp> latestOtp = otpRepository.findByIdentifierAndTypeAndUsedFalseAndExpiresAtGreaterThan(
             identifier,
             type.toUpperCase(),
             Instant.now()
         );
 
-        // Step 2: Check if OTP exists
         if (latestOtp.isEmpty()) {
             logger.debug("No valid OTP found for identifier: {} and type: {}", identifier, type);
             return false;
         }
 
-        // Step 3: Get the OTP entity
         Otp otp = latestOtp.get();
         logger.debug("Found OTP entry: createdAt={}, expiresAt={}, used={}", 
             otp.getCreatedAt(), otp.getExpiresAt(), otp.isUsed());
 
-        // Step 4: Validate OTP value
         if (!otp.getOtp().equals(otpValue)) {
             logger.debug("OTP value mismatch for identifier: {}", identifier);
             return false;
         }
 
-        // Step 5: Check expiration
         if (otp.getExpiresAt().isBefore(Instant.now())) {
             logger.debug("OTP expired for identifier: {}. Expiry time: {}", identifier, otp.getExpiresAt());
             return false;
         }
 
-        // Step 6: Mark OTP as used
         try {
             otp.setUsed(true);
             otpRepository.save(otp);
@@ -122,9 +123,9 @@ public class OtpService {
         }
     }
 
-    // Clean up expired OTPs every hour
     @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
     public void cleanupExpiredOtps() {
+        logger.debug("Running scheduled cleanup of expired OTPs");
         otpRepository.deleteByExpiresAtLessThan(Instant.now());
     }
 } 
