@@ -4,9 +4,11 @@ import com.familyHub.authorizationManager.dto.*;
 import com.familyHub.authorizationManager.exceptions.AuthenticationException;
 import com.familyHub.authorizationManager.models.User;
 import com.familyHub.authorizationManager.security.JwtTokenProvider;
+import com.familyHub.authorizationManager.security.UserPrincipal;
 import com.familyHub.authorizationManager.services.UserService;
 import com.familyHub.authorizationManager.services.OtpService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,7 +22,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final JwtTokenProvider tokenProvider;
+    @Autowired
+    private JwtTokenProvider tokenProvider;
     private final OtpService otpService;
 
     @PostMapping("/login")
@@ -34,8 +37,7 @@ public class AuthController {
             );
 
             if (authentication.isAuthenticated()) {
-                User user = userService.findUserByEmail(loginRequest.getEmail());
-                String token = tokenProvider.generateToken(user);
+                String token = tokenProvider.generateToken(authentication);
                 UserDTO userDTO = userService.getUserByEmail(loginRequest.getEmail());
                 return ResponseEntity.ok(new AuthResponse(token, userDTO));
             }
@@ -94,14 +96,20 @@ public class AuthController {
                     userService.findUserByEmail(identifier) :
                     userService.findUserByMobileNumber(identifier);
                 
-                String token = tokenProvider.generateToken(user);
+                // Create an Authentication object for the user
+                UserPrincipal userPrincipal = UserPrincipal.create(user);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    userPrincipal, null, userPrincipal.getAuthorities());
+                
+                String token = tokenProvider.generateToken(authentication);
                 UserDTO userDTO = userService.getUserByEmail(user.getEmail());
                 return ResponseEntity.ok(new AuthResponse(token, userDTO));
             }
+            
             return ResponseEntity.badRequest().body(new AuthResponse("Invalid OTP", false));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(new AuthResponse("OTP validation failed: " + e.getMessage(), false));
+                .body(new AuthResponse("Failed to validate OTP: " + e.getMessage(), false));
         }
     }
 
@@ -119,7 +127,12 @@ public class AuthController {
         UserDTO userDTO = userService.getUserById(userId);
         User user = userService.findUserById(userId);
         
-        String newToken = tokenProvider.generateToken(user);
+        // Create an Authentication object for the user
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            userPrincipal, null, userPrincipal.getAuthorities());
+        
+        String newToken = tokenProvider.generateToken(authentication);
         return ResponseEntity.ok(new AuthResponse(newToken, userDTO));
     }
 
