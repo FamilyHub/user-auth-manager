@@ -1,10 +1,14 @@
-package com.familyHub.authorizationManager.services;
+package com.familyHub.authorizationManager.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
@@ -30,6 +34,22 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+        }
+    }
+
+    public void sendRegistrationEmail(String toEmail, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Complete Your FamilyHub Registration");
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send registration email: " + e.getMessage(), e);
         }
     }
 } 

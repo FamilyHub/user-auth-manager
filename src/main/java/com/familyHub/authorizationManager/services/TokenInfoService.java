@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -24,15 +24,14 @@ public class TokenInfoService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         
-        Map<String, Object> tokenInfo = new HashMap<>();
-        tokenInfo.put("userId", userPrincipal.getId());
-        tokenInfo.put("email", userPrincipal.getEmail());
-        tokenInfo.put("name", userPrincipal.getName());
-        tokenInfo.put("familyName", userPrincipal.getFamilyName());
-        tokenInfo.put("userLevel", userPrincipal.getUserLevel());
-        tokenInfo.put("roles", userPrincipal.getAuthorities());
-        
-        return tokenInfo;
+        return Map.of(
+            "userId", userPrincipal.getId(),
+            "email", userPrincipal.getEmail(),
+            "name", userPrincipal.getName(),
+            "familyName", userPrincipal.getFamilyName(),
+            "userLevel", userPrincipal.getUserLevel(),
+            "roles", userPrincipal.getAuthorities()
+        );
     }
 
     public String getUserId() {
@@ -65,14 +64,60 @@ public class TokenInfoService {
         return userPrincipal.getUserLevel();
     }
 
-    public Object getRoles() {
+    public List<?> getRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .toList();
     }
 
     public User getUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userService.findUserById(userPrincipal.getId());
+    }
+
+    public String getMobileNumber() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getMobileNumber();
+    }
+
+    public List<?> getCustomFields() {
+        User user = getUser();
+        return user.getCustomFields();
+    }
+
+    public Long getTokenExpiration() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = tokenProvider.getTokenFromAuthentication(authentication);
+        return tokenProvider.getClaimFromToken(token, "exp", Long.class);
+    }
+
+    public Long getTokenIssuedAt() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = tokenProvider.getTokenFromAuthentication(authentication);
+        return tokenProvider.getClaimFromToken(token, "iat", Long.class);
+    }
+
+    public String getTokenSubject() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = tokenProvider.getTokenFromAuthentication(authentication);
+        return tokenProvider.getClaimFromToken(token, "sub", String.class);
+    }
+
+    public Map<String, Object> getAllClaims() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = tokenProvider.getTokenFromAuthentication(authentication);
+        return tokenProvider.getAllClaimsFromToken(token);
+    }
+
+    public String getPhoneNumber() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("No authenticated user found");
+        }
+        return tokenProvider.getPhoneNumberFromToken(tokenProvider.getTokenFromAuthentication(authentication));
     }
 } 

@@ -1,8 +1,10 @@
-package com.familyHub.authorizationManager.services;
+package com.familyHub.authorizationManager.services.impl;
 
 import com.familyHub.authorizationManager.models.Otp;
 import com.familyHub.authorizationManager.models.User;
 import com.familyHub.authorizationManager.repositories.OtpRepository;
+import com.familyHub.authorizationManager.services.SmsService;
+import com.familyHub.authorizationManager.services.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
