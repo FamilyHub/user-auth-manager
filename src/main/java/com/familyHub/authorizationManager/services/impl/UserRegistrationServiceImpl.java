@@ -6,6 +6,7 @@ import com.familyHub.authorizationManager.models.Role;
 import com.familyHub.authorizationManager.models.User;
 import com.familyHub.authorizationManager.models.UserRegistration;
 import com.familyHub.authorizationManager.repositories.UserRegistrationRepository;
+import com.familyHub.authorizationManager.repositories.UserRepository;
 import com.familyHub.authorizationManager.security.JwtTokenProvider;
 import com.familyHub.authorizationManager.services.IUserRegistrationService;
 import com.familyHub.authorizationManager.services.UserService;
@@ -35,9 +36,21 @@ public class UserRegistrationServiceImpl implements IUserRegistrationService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Override
     @Transactional
     public String processUserRegistration(UserRegisterDTO userRegisterDTO, Authentication authentication) {
+        // Validate parent exists if parentId is provided
+        User parent = null;
+        if (userRegisterDTO.getParentId() != null && !userRegisterDTO.getParentId().isEmpty()) {
+             parent = userService.findUserById(userRegisterDTO.getParentId());
+            if (parent == null) {
+                throw new IllegalArgumentException("Parent user not found with ID: " + userRegisterDTO.getParentId());
+            }
+        }
+
         // Convert string roles to Role entities
         List<Role> roles = userRegisterDTO.getRoles().stream()
                 .map(roleStr -> {
@@ -54,13 +67,12 @@ public class UserRegistrationServiceImpl implements IUserRegistrationService {
         // Create user with converted roles
         User user = new User();
         user.setUserId(userRegisterDTO.getUserId());
-        user.setFamilyName(userRegisterDTO.getFamilyName());
+        user.setFamilyName(parent.getFamilyName());
         user.setEmail(userRegisterDTO.getEmail());
         user.setMobileNumber(userRegisterDTO.getPhoneNumber());
         user.setName(userRegisterDTO.getName());
         user.setRoles(roles);
         user.setUserLevel(userRegisterDTO.getUserLevel());
-
 
         // Generate registration token using the new method
         String token = jwtTokenProvider.generateRegistrationToken(userRegisterDTO);
@@ -72,7 +84,7 @@ public class UserRegistrationServiceImpl implements IUserRegistrationService {
         registration.setToken(token);
         registration.setRequestTime(new java.util.Date());
         registration.setCompleted(false);
-        userRegistrationRepository.save(registration);
+
 
         // Create HTML content for password setup
         String htmlContent = createPasswordSetupHtml(user, token);
@@ -80,6 +92,9 @@ public class UserRegistrationServiceImpl implements IUserRegistrationService {
         // Send registration email
         emailService.sendRegistrationEmail(user.getEmail(), htmlContent);
 
+        userRegistrationRepository.save(registration);
+
+        userRepository.save(user);
         return token;
     }
 

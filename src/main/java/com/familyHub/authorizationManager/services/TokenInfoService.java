@@ -114,10 +114,9 @@ public class TokenInfoService {
     }
 
     public String getPhoneNumber() {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new SecurityException("No authenticated user found");
-        }
-        return tokenProvider.getPhoneNumberFromToken(tokenProvider.getTokenFromAuthentication(authentication));
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getMobileNumber();
     }
 } 

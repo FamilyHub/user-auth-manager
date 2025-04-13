@@ -4,11 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
@@ -39,16 +36,14 @@ public class EmailService {
 
     public void sendRegistrationEmail(String toEmail, String htmlContent) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Complete Your FamilyHub Registration");
-            helper.setText(htmlContent, true);
-            
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Complete Your FamilyHub Registration");
+            message.setText(htmlContent);
+
             mailSender.send(message);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to send registration email: " + e.getMessage(), e);
         }
     }

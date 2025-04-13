@@ -18,7 +18,9 @@ public class UserRegistrationController {
     private IUserRegistrationService userRegistrationService;
 
     @PostMapping("/add-new-user")
-    public ResponseEntity<?> addNewUser(@RequestBody UserRegisterDTO userRegisterDTO, Authentication authentication) {
+    public ResponseEntity<String> addNewUser(
+
+            @RequestBody UserRegisterDTO userRegisterDTO, Authentication authentication) {
         try {
             String registrationToken = userRegistrationService.processUserRegistration(userRegisterDTO, authentication);
             return ResponseEntity.ok().body("Registration email sent successfully. Token: " + registrationToken);
