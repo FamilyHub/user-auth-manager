@@ -24,6 +24,7 @@ public class UserConverter {
         user.setEmail(userDTO.getEmail());
         user.setMobileNumber(userDTO.getMobileNumber());
         user.setUserLevel(userDTO.getUserLevel());
+        user.setUserId(userDTO.getUserId());
         
         // Convert role types to Role entities
         if (userDTO.getRoleTypes() != null) {
