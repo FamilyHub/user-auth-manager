@@ -19,4 +19,12 @@ public interface UserService {
     // Existing methods for authentication
     User findUserById(String userId);
     User findUserByEmail(String email);
+
+    /**
+     * Gets all users except the specified user.
+     *
+     * @param excludedUserId The ID of the user to exclude from the results
+     * @return List of all users except the specified user
+     */
+    List<UserDTO> getAllUsersExcept(String excludedUserId);
 } 

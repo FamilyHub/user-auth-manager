@@ -1,9 +1,12 @@
 package com.familyHub.authorizationManager.controllers;
 
 import com.familyHub.authorizationManager.dto.UserDTO;
+import com.familyHub.authorizationManager.security.UserPrincipal;
 import com.familyHub.authorizationManager.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,15 +50,33 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
+        UserDTO user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
-        UserDTO user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(user);
+    /**
+     * Fetches all users except the authenticated user.
+     * The authenticated user's ID is extracted from the JWT token in the Authorization header.
+     *
+     * @return List of all users except the authenticated user
+     */
+    @GetMapping("/except-me")
+    public ResponseEntity<List<UserDTO>> getAllUsersExceptMe() {
+        // Get the authenticated user's ID from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String currentUserId = userPrincipal.getId();
+
+        // Get all users except the current user
+        List<UserDTO> users = userService.getAllUsersExcept(currentUserId);
+        return ResponseEntity.ok(users);
     }
 } 

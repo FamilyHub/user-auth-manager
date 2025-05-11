@@ -1,5 +1,6 @@
 package com.familyHub.authorizationManager.security;
 
+import com.familyHub.authorizationManager.dto.UserRegisterDTO;
 import com.familyHub.authorizationManager.models.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,36 +47,50 @@ public class JwtTokenProvider implements InitializingBean {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-        List<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+        return Jwts.builder()
+                .setSubject(userPrincipal.getEmail())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .claim("userId", userPrincipal.getId())
+                .claim("email", userPrincipal.getEmail())
+                .claim("phoneNumber", userPrincipal.getMobileNumber())
+                .claim("roles", userPrincipal.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()))
+                .compact();
+    }
+
+    public String generateRegistrationToken(UserRegisterDTO userRegisterDTO) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getId())
-                .claim("email", userPrincipal.getEmail())
-                .claim("name", userPrincipal.getName())
-                .claim("family_name", userPrincipal.getFamilyName())
-                .claim("user_level", userPrincipal.getUserLevel())
-                .claim("roles", roles)
-                .setIssuedAt(new Date())
+                .setSubject(userRegisterDTO.getEmail())
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .claim("userId", userRegisterDTO.getUserId())
+                .claim("email", userRegisterDTO.getEmail())
+                .claim("phoneNumber", userRegisterDTO.getPhoneNumber())
+                .claim("roles", userRegisterDTO.getRoles())
+                .claim("userLevel", userRegisterDTO.getUserLevel())
                 .compact();
     }
 
     public String getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(jwtSecret)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.getSubject();
+        return claims.get("userId", String.class);
     }
 
     public <T> T getClaimFromToken(String token, String claimName, Class<T> requiredType) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(jwtSecret)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -91,10 +107,36 @@ public class JwtTokenProvider implements InitializingBean {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(jwtSecret).build().parseClaimsJws(token);
             return true;
         } catch (Exception ex) {
             throw new AuthenticationServiceException("Invalid JWT token", ex);
         }
+    }
+
+    public String getTokenFromAuthentication(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AuthenticationServiceException("No authenticated user found");
+        }
+        return (String) authentication.getCredentials();
+    }
+
+    public Map<String, Object> getAllClaimsFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims;
+    }
+
+    public String getEmailFromToken(String token) {
+        Map<String, Object> claims = getAllClaimsFromToken(token);
+        return (String) claims.get("email");
+    }
+
+    public String getPhoneNumberFromToken(String token) {
+        Map<String, Object> claims = getAllClaimsFromToken(token);
+        return (String) claims.get("phoneNumber");
     }
 } 

@@ -41,6 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String userId = tokenProvider.getUserIdFromToken(jwt);
                 
                 try {
+
+                    // this check will differ for the admin and family-member user
                     User user = userConverter.toEntity(userService.getUserById(userId));
                     
                     if (user != null) {

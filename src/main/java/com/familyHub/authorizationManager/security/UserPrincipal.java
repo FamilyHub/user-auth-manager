@@ -15,14 +15,16 @@ public class UserPrincipal implements UserDetails {
     private String name;
     private String familyName;
     private String userLevel;
+    private String mobileNumber;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(String id, String email, String name, String familyName, String userLevel, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(String id, String email, String name, String familyName, String userLevel, String mobileNumber, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.familyName = familyName;
         this.userLevel = userLevel;
+        this.mobileNumber = mobileNumber;
         this.authorities = authorities;
     }
 
@@ -37,6 +39,7 @@ public class UserPrincipal implements UserDetails {
                 user.getName(),
                 user.getFamilyName(),
                 user.getUserLevel().toString(),
+                user.getMobileNumber(),
                 authorities
         );
     }
@@ -59,6 +62,10 @@ public class UserPrincipal implements UserDetails {
 
     public String getUserLevel() {
         return userLevel;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class AuthorizationManagerApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(AuthorizationManagerApplication.class, args);
 	}
-
 }

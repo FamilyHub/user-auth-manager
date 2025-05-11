@@ -6,7 +6,8 @@ import com.familyHub.authorizationManager.models.User;
 import com.familyHub.authorizationManager.security.JwtTokenProvider;
 import com.familyHub.authorizationManager.security.UserPrincipal;
 import com.familyHub.authorizationManager.services.UserService;
-import com.familyHub.authorizationManager.services.OtpService;
+import com.familyHub.authorizationManager.services.impl.OtpService;
+import com.familyHub.authorizationManager.services.IUserRegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider tokenProvider;
     private final OtpService otpService;
+    private final IUserRegistrationService userRegistrationService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -141,5 +143,15 @@ public class AuthController {
         // In a stateless JWT setup, client-side logout is sufficient
         // Server-side blacklisting could be implemented here if needed
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody UserRegisterDTO userRegisterDTO) {
+        try {
+            String token = userRegistrationService.processUserRegistration(userRegisterDTO, null);
+            return ResponseEntity.ok(new AuthResponse(token, true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new AuthResponse("Registration failed: " + e.getMessage(), false));
+        }
     }
 } 
