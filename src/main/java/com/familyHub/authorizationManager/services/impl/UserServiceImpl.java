@@ -127,4 +127,25 @@ public class UserServiceImpl implements UserService {
         }
         return user.get();
     }
+
+    @Override
+    public List<UserDTO> getAllUsersExcept(String excludedUserId) {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .filter(user -> !user.getUserId().equals(excludedUserId))
+                .map(user -> {
+                    UserDTO dto = new UserDTO();
+                    dto.setUserId(user.getUserId());
+                    dto.setName(user.getName());
+                    dto.setFamilyName(user.getFamilyName());
+                    dto.setEmail(user.getEmail());
+                    dto.setMobileNumber(user.getMobileNumber());
+                    dto.setUserLevel(user.getUserLevel());
+                    dto.setRoleTypes(user.getRoles().stream()
+                            .map(role -> role.getRoleType().name())
+                            .collect(Collectors.toList()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
 } 
