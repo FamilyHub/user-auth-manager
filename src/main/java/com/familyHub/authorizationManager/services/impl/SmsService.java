@@ -1,4 +1,4 @@
-package com.familyHub.authorizationManager.services;
+package com.familyHub.authorizationManager.services.impl;
 
 import com.twilio.Twilio;
 import com.twilio.rest.verify.v2.service.Verification;

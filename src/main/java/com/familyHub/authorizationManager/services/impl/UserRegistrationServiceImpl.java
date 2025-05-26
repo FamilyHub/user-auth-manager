@@ -8,7 +8,6 @@ import com.familyHub.authorizationManager.models.UserRegistration;
 import com.familyHub.authorizationManager.repositories.UserRegistrationRepository;
 import com.familyHub.authorizationManager.repositories.UserRepository;
 import com.familyHub.authorizationManager.security.JwtTokenProvider;
-import com.familyHub.authorizationManager.services.AsyncEmailService;
 import com.familyHub.authorizationManager.services.IUserRegistrationService;
 import com.familyHub.authorizationManager.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

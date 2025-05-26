@@ -8,4 +8,4 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories(basePackages = "com.familyHub.authorizationManager.repositories")
 @EnableMongoAuditing
 public class MongoConfig {
-} 
+}

@@ -1,4 +1,4 @@
-package com.familyHub.authorizationManager.services;
+package com.familyHub.authorizationManager.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;

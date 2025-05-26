@@ -1,7 +1,7 @@
 package com.familyHub.authorizationManager.controllers;
 
 import com.familyHub.authorizationManager.models.User;
-import com.familyHub.authorizationManager.services.TokenInfoService;
+import com.familyHub.authorizationManager.services.impl.TokenInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

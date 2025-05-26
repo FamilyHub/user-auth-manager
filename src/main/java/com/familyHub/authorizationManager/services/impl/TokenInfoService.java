@@ -1,8 +1,9 @@
-package com.familyHub.authorizationManager.services;
+package com.familyHub.authorizationManager.services.impl;
 
 import com.familyHub.authorizationManager.models.User;
 import com.familyHub.authorizationManager.security.JwtTokenProvider;
 import com.familyHub.authorizationManager.security.UserPrincipal;
+import com.familyHub.authorizationManager.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
