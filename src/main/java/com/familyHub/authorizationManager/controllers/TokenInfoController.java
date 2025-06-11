@@ -41,6 +41,7 @@ public class TokenInfoController {
     // Get name
     @GetMapping("/name")
     public ResponseEntity<String> getName() {
+
         return ResponseEntity.ok(tokenInfoService.getName());
     }
 
